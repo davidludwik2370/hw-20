@@ -1,3 +1,4 @@
+//array to store routs of files to cache
 const FILES_TO_CACHE = [
   "/",
   "/index.html",
@@ -11,7 +12,7 @@ const FILES_TO_CACHE = [
 const CACHE_NAME = "static-cache-v2";
 const DATA_CACHE_NAME = "data-cache-v1";
 
-// install
+// installing cache
 self.addEventListener("install", function(evt) {
   evt.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
@@ -23,6 +24,7 @@ self.addEventListener("install", function(evt) {
   self.skipWaiting();
 });
 
+//activating cache
 self.addEventListener("activate", function(evt) {
   evt.waitUntil(
     caches.keys().then(keyList => {
@@ -40,7 +42,7 @@ self.addEventListener("activate", function(evt) {
   self.clients.claim();
 });
 
-// fetch
+// fetching data from cache
 self.addEventListener("fetch", function(evt) {
   // cache successful requests to the API
   if (evt.request.url.includes("/api/")) {
@@ -48,7 +50,7 @@ self.addEventListener("fetch", function(evt) {
       caches.open(DATA_CACHE_NAME).then(cache => {
         return fetch(evt.request)
           .then(response => {
-            // If the response was good, clone it and store it in the cache.
+            // store clone of response in cache
             if (response.status === 200) {
               cache.put(evt.request.url, response.clone());
             }
@@ -56,7 +58,7 @@ self.addEventListener("fetch", function(evt) {
             return response;
           })
           .catch(err => {
-            // Network request failed, try to get it from the cache.
+            // retrieve data from cache if network response fails
             return cache.match(evt.request);
           });
       }).catch(err => console.log(err))
@@ -65,8 +67,7 @@ self.addEventListener("fetch", function(evt) {
     return;
   }
 
-  // if the request is not for the API, serve static assets using "offline-first" approach.
-  // see https://developers.google.com/web/fundamentals/instant-and-offline/offline-cookbook#cache-falling-back-to-network
+  // serves non-api requests with local data if possible
   evt.respondWith(
     caches.match(evt.request).then(function(response) {
       return response || fetch(evt.request);
