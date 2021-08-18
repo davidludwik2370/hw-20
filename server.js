@@ -15,6 +15,8 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/public/index.html')));
+
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/budget", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
